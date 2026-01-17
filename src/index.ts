@@ -10,22 +10,10 @@ const app = express();
 // Middleware
 app.use(express.json());
 
-// CORS configuration - support comma-separated origins
-const allowedOrigins = env.CORS_ORIGIN.split(",").map((origin) => origin.trim());
+// CORS configuration
 app.use(
   cors({
-    origin: (origin, callback) => {
-      // Allow requests with no origin (mobile apps, Postman, etc.)
-      if (!origin) {
-        callback(null, true);
-        return;
-      }
-      if (allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: process.env.CORS_ORIGIN ?? "http://localhost:5173",
     credentials: true,
   })
 );
