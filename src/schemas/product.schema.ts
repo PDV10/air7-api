@@ -1,0 +1,16 @@
+import { z } from "zod";
+
+export const createProductSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  description: z.string().optional(),
+  price: z.number().positive("Price must be positive"),
+  stock: z.number().int().nonnegative("Stock must be non-negative").optional(),
+  imageUrl: z.string().url("Invalid image URL").optional(),
+  brand: z.string().optional(),
+  categoryId: z.number().int().positive("Invalid category ID").optional(),
+});
+
+export const updateProductSchema = createProductSchema.partial();
+
+export type CreateProductInput = z.infer<typeof createProductSchema>;
+export type UpdateProductInput = z.infer<typeof updateProductSchema>;
