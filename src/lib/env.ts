@@ -8,6 +8,7 @@ const envSchema = z.object({
     .transform((val) => parseInt(val, 10)),
   CORS_ORIGIN: z.string().default("http://localhost:5173"),
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
+  DIRECT_URL: z.string().min(1).optional(),
   API_KEY: z.string().min(1, "API_KEY is required"),
   CLOUDINARY_CLOUD_NAME: z.string().optional(),
   CLOUDINARY_API_KEY: z.string().optional(),
