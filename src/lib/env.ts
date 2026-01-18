@@ -8,9 +8,10 @@ const envSchema = z.object({
     .transform((val) => parseInt(val, 10)),
   CORS_ORIGIN: z.string().default("http://localhost:5173"),
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
-  CLOUDINARY_CLOUD_NAME: z.string().min(1, "CLOUDINARY_CLOUD_NAME is required"),
-  CLOUDINARY_API_KEY: z.string().min(1, "CLOUDINARY_API_KEY is required"),
-  CLOUDINARY_API_SECRET: z.string().min(1, "CLOUDINARY_API_SECRET is required"),
+  API_KEY: z.string().min(1, "API_KEY is required"),
+  CLOUDINARY_CLOUD_NAME: z.string().optional(),
+  CLOUDINARY_API_KEY: z.string().optional(),
+  CLOUDINARY_API_SECRET: z.string().optional(),
 });
 
 const parsed = envSchema.safeParse(process.env);

@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../lib/prisma";
+import { requireApiKey } from "../middleware/requireApiKey";
 import {
   createCategorySchema,
   updateCategorySchema,
@@ -73,7 +74,7 @@ router.get("/:id/products", async (req: Request, res: Response) => {
 });
 
 // POST /api/categories - Create category
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", requireApiKey, async (req: Request, res: Response) => {
   try {
     const parsed = createCategorySchema.safeParse(req.body);
 
@@ -98,7 +99,7 @@ router.post("/", async (req: Request, res: Response) => {
 });
 
 // PUT /api/categories/:id - Update category
-router.put("/:id", async (req: Request, res: Response) => {
+router.put("/:id", requireApiKey, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string, 10);
     if (isNaN(id)) {
@@ -136,7 +137,7 @@ router.put("/:id", async (req: Request, res: Response) => {
 });
 
 // DELETE /api/categories/:id - Delete category
-router.delete("/:id", async (req: Request, res: Response) => {
+router.delete("/:id", requireApiKey, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string, 10);
     if (isNaN(id)) {

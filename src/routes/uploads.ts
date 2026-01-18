@@ -1,11 +1,12 @@
 import { Router, Request, Response } from "express";
 import crypto from "crypto";
 import { env } from "../lib/env";
+import { requireApiKey } from "../middleware/requireApiKey";
 
 const router = Router();
 
 // POST /api/uploads/signature - Get Cloudinary signature for direct upload
-router.post("/signature", async (_req: Request, res: Response) => {
+router.post("/signature", requireApiKey, async (_req: Request, res: Response) => {
   try {
     const timestamp = Math.round(Date.now() / 1000);
     const folder = "air7/products";

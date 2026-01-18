@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 import { prisma } from "../lib/prisma";
+import { requireApiKey } from "../middleware/requireApiKey";
 import {
   createProductSchema,
   updateProductSchema,
@@ -48,7 +49,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 });
 
 // POST /api/products - Create product
-router.post("/", async (req: Request, res: Response) => {
+router.post("/", requireApiKey, async (req: Request, res: Response) => {
   try {
     const parsed = createProductSchema.safeParse(req.body);
 
@@ -70,7 +71,7 @@ router.post("/", async (req: Request, res: Response) => {
 });
 
 // PUT /api/products/:id - Update product
-router.put("/:id", async (req: Request, res: Response) => {
+router.put("/:id", requireApiKey, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string, 10);
     if (isNaN(id)) {
@@ -105,7 +106,7 @@ router.put("/:id", async (req: Request, res: Response) => {
 });
 
 // DELETE /api/products/:id - Delete product
-router.delete("/:id", async (req: Request, res: Response) => {
+router.delete("/:id", requireApiKey, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string, 10);
     if (isNaN(id)) {
