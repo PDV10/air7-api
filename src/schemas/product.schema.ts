@@ -11,6 +11,8 @@ export const createProductSchema = z.object({
   brand: z.string().optional(),
   categoryId: z.coerce.number().int().positive("Invalid category ID").optional(),
   sizes: z.array(z.string()).optional(),
+  isOnSale: z.coerce.boolean().optional(),
+  salePrice: z.coerce.number().positive("Sale price must be positive").nullable().optional(),
 });
 
 export const updateProductSchema = createProductSchema.partial();
