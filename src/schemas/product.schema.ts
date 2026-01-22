@@ -10,6 +10,7 @@ export const createProductSchema = z.object({
   imagePublicId: z.string().nullable().optional(),
   brand: z.string().optional(),
   categoryId: z.coerce.number().int().positive("Invalid category ID").optional(),
+  sizes: z.array(z.string()).optional(),
 });
 
 export const updateProductSchema = createProductSchema.partial();
