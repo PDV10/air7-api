@@ -1,9 +1,7 @@
 import { Router, Request, Response } from "express";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import { z } from "zod";
 import { prisma } from "../lib/prisma";
-import { env } from "../lib/env";
 
 const router = Router();
 
@@ -12,7 +10,7 @@ const loginSchema = z.object({
   password: z.string().min(1, "Password is required"),
 });
 
-// POST /api/admin/login - Admin login
+// POST /api/admin/login - Validate admin credentials
 router.post("/login", async (req: Request, res: Response) => {
   try {
     const parsed = loginSchema.safeParse(req.body);
@@ -20,7 +18,7 @@ router.post("/login", async (req: Request, res: Response) => {
     if (!parsed.success) {
       res.status(400).json({ 
         success: false, 
-        error: parsed.error.flatten().fieldErrors 
+        error: "Username and password are required" 
       });
       return;
     }
@@ -51,19 +49,9 @@ router.post("/login", async (req: Request, res: Response) => {
       return;
     }
 
-    // Generate JWT token
-    const token = jwt.sign(
-      { 
-        id: admin.id, 
-        username: admin.username 
-      },
-      env.JWT_SECRET,
-      { expiresIn: "24h" }
-    );
-
+    // Success - credentials are valid
     res.json({
       success: true,
-      token,
       admin: {
         id: admin.id,
         username: admin.username,
@@ -74,50 +62,6 @@ router.post("/login", async (req: Request, res: Response) => {
     res.status(500).json({ 
       success: false, 
       error: "Login failed" 
-    });
-  }
-});
-
-// GET /api/admin/verify - Verify JWT token
-router.get("/verify", async (req: Request, res: Response) => {
-  try {
-    const auth = req.headers.authorization;
-    const token = auth?.startsWith("Bearer ") ? auth.slice(7).trim() : undefined;
-
-    if (!token) {
-      res.status(401).json({ 
-        success: false, 
-        error: "Token required" 
-      });
-      return;
-    }
-
-    const decoded = jwt.verify(token, env.JWT_SECRET) as { id: number; username: string };
-
-    // Verify admin still exists
-    const admin = await prisma.admin.findUnique({
-      where: { id: decoded.id },
-    });
-
-    if (!admin) {
-      res.status(401).json({ 
-        success: false, 
-        error: "Admin not found" 
-      });
-      return;
-    }
-
-    res.json({
-      success: true,
-      admin: {
-        id: admin.id,
-        username: admin.username,
-      },
-    });
-  } catch (error) {
-    res.status(401).json({ 
-      success: false, 
-      error: "Invalid token" 
     });
   }
 });

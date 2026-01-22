@@ -10,8 +10,6 @@ const envSchema = z.object({
   DATABASE_URL: z.string().min(1, "DATABASE_URL is required"),
   DIRECT_URL: z.string().min(1).optional(),
   API_KEY: z.string().min(1, "API_KEY is required"),
-  // JWT secret for admin authentication
-  JWT_SECRET: z.string().min(1, "JWT_SECRET is required"),
   // Optional: Internal admin secret for defense in depth (only proxy knows this)
   INTERNAL_ADMIN_SECRET: z.string().optional(),
   CLOUDINARY_CLOUD_NAME: z.string().optional(),
