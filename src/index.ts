@@ -4,6 +4,7 @@ import { env } from "./lib/env";
 import productsRouter from "./routes/products";
 import categoriesRouter from "./routes/categories";
 import uploadsRouter from "./routes/uploads";
+import adminRouter from "./routes/admin";
 
 const app = express();
 
@@ -38,6 +39,7 @@ app.get("/health", (_req: Request, res: Response) => {
 app.use("/api/products", productsRouter);
 app.use("/api/categories", categoriesRouter);
 app.use("/api/uploads", uploadsRouter);
+app.use("/api/admin", adminRouter);
 
 // 404 handler
 app.use((_req: Request, res: Response) => {
