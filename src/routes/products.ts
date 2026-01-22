@@ -13,6 +13,22 @@ import {
 
 const router = Router();
 
+const parseFormDataFields = (body: Record<string, unknown>) => {
+ 
+  if (typeof body.sizes === "string") {
+    try {
+      body.sizes = JSON.parse(body.sizes);
+    } catch {
+      body.sizes = [];
+    }
+  }
+
+
+  if (typeof body.isOnSale === "string") {
+    body.isOnSale = body.isOnSale === "true";
+  }
+};
+
 // Conditional middleware: only run multer for multipart/form-data
 const conditionalUpload = (req: Request, res: Response, next: NextFunction) => {
   if (req.is("multipart/form-data")) {
@@ -74,6 +90,9 @@ router.post(
   conditionalUpload,
   async (req: Request, res: Response) => {
     try {
+      // Parse FormData fields that arrive as strings
+      parseFormDataFields(req.body);
+
       const parsed = createProductSchema.safeParse(req.body);
 
       if (!parsed.success) {
