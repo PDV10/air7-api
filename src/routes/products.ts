@@ -165,6 +165,75 @@ router.put("/:id", requireApiKey, async (req: Request, res: Response) => {
   }
 });
 
+// POST /api/products/:id/image - Update product with image (FormData)
+router.post(
+  "/:id/image",
+  requireApiKey,
+  upload.single("image"),
+  async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id as string, 10);
+      if (isNaN(id)) {
+        res.status(400).json({ error: "Invalid product ID" });
+        return;
+      }
+
+      const existing = await prisma.product.findUnique({ where: { id } });
+      if (!existing) {
+        res.status(404).json({ error: "Product not found" });
+        return;
+      }
+
+      // Parse FormData fields
+      parseFormDataFields(req.body);
+
+      const parsed = updateProductSchema.safeParse(req.body);
+
+      if (!parsed.success) {
+        res.status(400).json({ error: parsed.error.flatten().fieldErrors });
+        return;
+      }
+
+      let imageUrl: string | undefined;
+      let imagePublicId: string | undefined;
+
+      // Handle image upload if file is present
+      if (req.file) {
+        // Delete old image from Cloudinary if exists
+        if (existing.imagePublicId) {
+          try {
+            await deleteFromCloudinary(existing.imagePublicId);
+          } catch (cloudinaryError) {
+            console.error("Error deleting old image from Cloudinary:", cloudinaryError);
+          }
+        }
+
+        const uploadResult = await uploadBufferToCloudinary(
+          req.file.buffer,
+          "air7/products"
+        );
+        imageUrl = uploadResult.secure_url;
+        imagePublicId = uploadResult.public_id;
+      }
+
+      const product = await prisma.product.update({
+        where: { id },
+        data: {
+          ...parsed.data,
+          ...(imageUrl && { imageUrl }),
+          ...(imagePublicId && { imagePublicId }),
+        },
+        include: { category: true },
+      });
+
+      res.json(product);
+    } catch (error) {
+      console.error("Error updating product with image:", error);
+      res.status(500).json({ error: "Failed to update product" });
+    }
+  }
+);
+
 // DELETE /api/products/:id - Delete product
 router.delete("/:id", requireApiKey, async (req: Request, res: Response) => {
   try {
