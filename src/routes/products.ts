@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { prisma } from "../lib/prisma";
-import { requireApiKey } from "../middleware/requireApiKey";
+import { requireApiKey, requireInternalAdmin } from "../middleware/requireApiKey";
 import { upload } from "../middleware/upload";
 import {
   uploadBufferToCloudinary,
@@ -87,6 +87,7 @@ router.get("/:id", async (req: Request, res: Response) => {
 router.post(
   "/",
   requireApiKey,
+  requireInternalAdmin,
   conditionalUpload,
   async (req: Request, res: Response) => {
     try {
@@ -131,7 +132,7 @@ router.post(
 );
 
 // PUT /api/products/:id - Update product
-router.put("/:id", requireApiKey, async (req: Request, res: Response) => {
+router.put("/:id", requireApiKey, requireInternalAdmin, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string, 10);
     if (isNaN(id)) {
@@ -169,6 +170,7 @@ router.put("/:id", requireApiKey, async (req: Request, res: Response) => {
 router.post(
   "/:id/image",
   requireApiKey,
+  requireInternalAdmin,
   upload.single("image"),
   async (req: Request, res: Response) => {
     try {
@@ -235,7 +237,7 @@ router.post(
 );
 
 // DELETE /api/products/:id - Delete product
-router.delete("/:id", requireApiKey, async (req: Request, res: Response) => {
+router.delete("/:id", requireApiKey, requireInternalAdmin, async (req: Request, res: Response) => {
   try {
     const id = parseInt(req.params.id as string, 10);
     if (isNaN(id)) {

@@ -10,11 +10,18 @@ const app = express();
 // Middleware
 app.use(express.json());
 
-// CORS configuration
+// CORS configuration - allows frontend domain and proxy requests
+const allowedOrigins = [
+  env.CORS_ORIGIN,
+  "https://air7.vercel.app",
+  "https://air-seven.vercel.app",
+].filter(Boolean) as string[];
+
 app.use(
   cors({
-    origin: [process.env.CORS_ORIGIN ?? "http://localhost:5173", "https://air7.vercel.app"],
+    origin: allowedOrigins,
     credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization", "x-api-key", "x-internal-admin"],
   })
 );
 
