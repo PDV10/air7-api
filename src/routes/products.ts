@@ -1,12 +1,31 @@
-import { Router, Request, Response } from "express";
+import { Router, Request, Response, NextFunction } from "express";
 import { prisma } from "../lib/prisma";
 import { requireApiKey } from "../middleware/requireApiKey";
+import { upload } from "../middleware/upload";
+import {
+  uploadBufferToCloudinary,
+  deleteFromCloudinary,
+} from "../utils/cloudinaryUtils";
 import {
   createProductSchema,
   updateProductSchema,
 } from "../schemas/product.schema";
 
 const router = Router();
+
+// Conditional middleware: only run multer for multipart/form-data
+const conditionalUpload = (req: Request, res: Response, next: NextFunction) => {
+  if (req.is("multipart/form-data")) {
+    upload.single("image")(req, res, (err) => {
+      if (err) {
+        return res.status(400).json({ error: err.message });
+      }
+      next();
+    });
+  } else {
+    next();
+  }
+};
 
 // GET /api/products - List all products
 router.get("/", async (_req: Request, res: Response) => {
@@ -48,27 +67,49 @@ router.get("/:id", async (req: Request, res: Response) => {
   }
 });
 
-// POST /api/products - Create product
-router.post("/", requireApiKey, async (req: Request, res: Response) => {
-  try {
-    const parsed = createProductSchema.safeParse(req.body);
+// POST /api/products - Create product (supports JSON or multipart/form-data with image)
+router.post(
+  "/",
+  requireApiKey,
+  conditionalUpload,
+  async (req: Request, res: Response) => {
+    try {
+      const parsed = createProductSchema.safeParse(req.body);
 
-    if (!parsed.success) {
-      res.status(400).json({ error: parsed.error.flatten().fieldErrors });
-      return;
+      if (!parsed.success) {
+        res.status(400).json({ error: parsed.error.flatten().fieldErrors });
+        return;
+      }
+
+      let imageUrl: string | undefined;
+      let imagePublicId: string | undefined;
+
+      // Handle image upload if file is present
+      if (req.file) {
+        const uploadResult = await uploadBufferToCloudinary(
+          req.file.buffer,
+          "air7/products"
+        );
+        imageUrl = uploadResult.secure_url;
+        imagePublicId = uploadResult.public_id;
+      }
+
+      const product = await prisma.product.create({
+        data: {
+          ...parsed.data,
+          ...(imageUrl && { imageUrl }),
+          ...(imagePublicId && { imagePublicId }),
+        },
+        include: { category: true },
+      });
+
+      res.status(201).json(product);
+    } catch (error) {
+      console.error("Error creating product:", error);
+      res.status(500).json({ error: "Failed to create product" });
     }
-
-    const product = await prisma.product.create({
-      data: parsed.data,
-      include: { category: true },
-    });
-
-    res.status(201).json(product);
-  } catch (error) {
-    console.error("Error creating product:", error);
-    res.status(500).json({ error: "Failed to create product" });
   }
-});
+);
 
 // PUT /api/products/:id - Update product
 router.put("/:id", requireApiKey, async (req: Request, res: Response) => {
@@ -118,6 +159,16 @@ router.delete("/:id", requireApiKey, async (req: Request, res: Response) => {
     if (!existing) {
       res.status(404).json({ error: "Product not found" });
       return;
+    }
+
+    // Delete image from Cloudinary if exists
+    if (existing.imagePublicId) {
+      try {
+        await deleteFromCloudinary(existing.imagePublicId);
+      } catch (cloudinaryError) {
+        console.error("Error deleting image from Cloudinary:", cloudinaryError);
+        
+      }
     }
 
     await prisma.product.delete({ where: { id } });

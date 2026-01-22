@@ -22,6 +22,7 @@ model Product {
   price       Decimal
   stock       Int       @default(0)
   imageUrl    String?
+  imagePublicId String?
   brand       String?
   categoryId  Int?
   gender      String?

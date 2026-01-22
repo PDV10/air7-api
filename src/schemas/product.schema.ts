@@ -3,12 +3,13 @@ import { z } from "zod";
 export const createProductSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
-  price: z.number().positive("Price must be positive"),
-  stock: z.number().int().nonnegative("Stock must be non-negative").optional(),
+  price: z.coerce.number().positive("Price must be positive"),
+  stock: z.coerce.number().int().nonnegative("Stock must be non-negative").optional(),
   gender: z.string().nullable().optional(),
   imageUrl: z.string().url("Invalid image URL").nullable().optional(),
+  imagePublicId: z.string().nullable().optional(),
   brand: z.string().optional(),
-  categoryId: z.number().int().positive("Invalid category ID").optional(),
+  categoryId: z.coerce.number().int().positive("Invalid category ID").optional(),
 });
 
 export const updateProductSchema = createProductSchema.partial();
